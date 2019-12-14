@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FoxScreen</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="./material.css">
+<script src="./material.js"></script>
+<script src="./app.js"></script>
+</head>
+<style>
+    .cmnBrdr{
+        margin: 5px;
+    }
+    .map{
+        background-color: teal;
+        height: 100vh;
+    }
+    .handShake{
+        background-color: #b3d4fc;
+        height: 50vh;
+    }
+    .knocks{
+        background-color:#ff9ac9;
+        height: 50vh;
+    }
+</style>
+<body>
+<div class="mdl-grid">
+  <div class="mdl-cell mdl-cell--8-col cmnBrdr map">
+
+  </div>
+  <div class="mdl-cell mdl-cell--4-col">
+      <div class="handShake cmnBrdr">
+          <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored" onclick="GetDeviceList()">Print handshakes</button>
+          <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+  <thead>
+    <tr>
+      <th>MAC</th>
+      <th>Width</th>
+      <th>Height</th>
+      <th>Ori</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>25</td>
+      <td>$2.90</td>
+      <td>$2.90</td>
+      <td>$2.90</td>
+    </tr>
+  </tbody>
+</table>
+      </div>
+      <div class="knocks cmnBrdr">
+          <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" onclick=GetKnockList()>Print Knocks</button>
+         <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+  <thead>
+    <tr>
+      <th>MAC</th>
+      <th>Epoch</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>25</td>
+      <td>$2.90</td>
+    </tr>
+  </tbody>
+</table>
+      </div>
+  </div>
+</div>
+</body>
+</html>
+
+/**
+ * Created by usr1 on 1/18/17.
+ */
+function GetDeviceList()
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", "/WebView/DeviceList", false ); // false for synchronous request
+    xmlHttp.send();
+    console.log(xmlHttp.responseText);
+}
+
+function GetKnockList()
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", "/WebView/KnocksList", false ); // false for synchronous request
+    xmlHttp.send();
+    console.log(xmlHttp.responseText);
+}

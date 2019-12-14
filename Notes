@@ -1,0 +1,14 @@
+**FoxScreen**
+
+
+URL              		Expl
+/GetDeviceID/<screenSize,..,..>	Returns uniq device ID
+//TODO create knock1 and knock2
+/Knock/<loc>			Returns matching Nighbour
+
+Websockets							Expl
+/MshipConnection/{Jobtype:getMedia,DeviceID:12}			Returns Media
+/MshipConnection/{Jobtype:GraphEnded,DeviceID:12}		Send to Server when user clicks "All device Connected"
+
+//TODO
+have to check all device have already downloaded media

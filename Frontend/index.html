@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!--TODO Download local copy-->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+
+    <title>FoxScreen</title>
+</head>
+<style>
+
+
+    [class^="col"]{
+        /*border: 1px solid black;*/
+        outline-style: dotted;
+    }
+    /*button{*/
+        /*margin: 10px 10px 10px 10px;*/
+        /*padding: 10px;*/
+    /*}*/
+</style>
+<body>
+<!--<div class="" style="height: 100vh">-->
+<div class="" style="height: 100%">
+    <div class="row" style="height: 15vh">
+        <div class="col">
+            <button id="North_button" onclick="knock('North')" type="button" class="btn btn-primary btn-lg btn-block" style="height: 100%">North<div id="confrimationID_North"></div><div id="Connected_North"></div></button>
+        </div>
+    </div>
+    <div class="row" style="height: 70vh">
+        <div class="col">
+            <button id="West_button" onclick="knock('West')" type="button" class="btn btn-secondary btn-lg btn-block" style="height: 100%">West<div id="confrimationID_West"></div><div id="Connected_West"></div></button>
+        </div>
+        <div class="col">
+            <button type="button" class="btn btn-info btn-lg" id="connectBtn" onclick="getUniqId()">Connect</button>
+
+            <div class="alert alert-success" role="alert" id="deviceIDTxt">
+                Device ID :
+            </div>
+
+            <button type="button" class="btn btn-warning" id="allDeviceBtn" onclick="startCropping()">Done.All device connected</button>
+
+        </div>
+        <div class="col">
+            <button id="East_button" onclick="knock('East')" type="button" class="btn btn-success btn-lg btn-block" style="height: 100%">East<div id="confrimationID_East"></div><div id="Connected_East"></div></button>
+        </div>
+    </div>
+    <div class="row" style="height: 15vh">
+        <div class="col">
+            <button id="South_button" onclick="knock('South')" type="button" class="btn btn-danger btn-lg btn-block" style="height: 100%">South<div id="confrimationID_South"></div><div id="Connected_South"></div></button>
+        </div>
+    </div>
+</div>
+
+<!--<img src="" id="imgHolder">-->
+<!--<video src="" id="videoHolder"></video>-->
+</body>
+<script>
+    var uniqID=00;
+    var MSws = WebSocket;
+    var Knockws = WebSocket;
+    function getUniqId() {
+        if (uniqID!==00){
+            console.log("already Connected");
+            window.alert("already Connected");
+            return
+        }
+        console.log("Connect button clicked");
+
+        function reqListener () {
+            uniqID=this.responseText;
+            console.log("got UniqId : "+uniqID);
+            document.getElementById("connectBtn").textContent="Connected";
+            document.getElementById("deviceIDTxt").textContent="Device ID : "+uniqID;
+//            TODO check for error (sent json from server instead of int)
+//            if uniqID ==1 then device is on left top corner therfore cant allow device on North and West side
+            if (uniqID==="1"){
+                console.log("Left top corner device");
+                document.getElementById("North_button").setAttribute("disabled",true);
+                document.getElementById("West_button").setAttribute("disabled",true);
+            }
+            MSwsSocket();
+            KnockwsSocket();
+        }
+//        TODO check if zoom level effect width and height
+        var screenWidth = window.screen.width;
+        var screenHeight = window.screen.height;
+        console.log("screenWidth:",screenWidth);
+        console.log("screenHeight:",screenHeight);
+        var oReq = new XMLHttpRequest();
+        oReq.addEventListener("load", reqListener);
+        oReq.open("GET", "/GetDeviceID?width="+screenWidth+"&height="+screenHeight);
+        oReq.send();
+    }
+
+    function MSwsSocket() {
+        var port =window.location.port;
+        var MSws_URL="";
+        if (port===""){
+            MSws_URL="ws://"+window.location.hostname+"/MshipWSConnection";
+        }else{
+            MSws_URL="ws://"+window.location.hostname+":"+port+"/MshipWSConnection";
+        }
+       MSws = new WebSocket(MSws_URL);
+
+            if ("WebSocket" in window)
+            {
+//                alert("WebSocket supported by your Browser!");
+
+                MSws.onopen = function()
+                {
+                    // Web Socket is connected, send data using send()
+                    MSws.send(MotherShipWSmsg("connect","",uniqID));
+                    //                    alert("Message is sent...");
+                };
+
+                MSws.onmessage = function (evt)
+                {
+                    var received_msg = JSON.parse(evt.data);
+                    console.log("received msg : ",received_msg);
+
+                    switch (received_msg.JobType){
+                        case "crop_result_pic":
+//                            alert(received_msg.Data);
+//                            document.getElementById("imgHolder").src = received_msg.Data;
+                            window.location="/display?file="+received_msg.Data+"&type="+"pic";
+
+                            break
+                        case "crop_result_video":
+//                            alert(received_msg.Data);
+//                            document.getElementById("videoHolder").src = received_msg.Data;
+                            window.location="/display?file="+received_msg.Data+"&type="+"video";
+                            break
+                    }
+                };
+
+                MSws.onclose = function()
+                {
+                    // websocket is closed.
+//                    alert("Connection is closed...");
+                };
+
+                window.onbeforeunload = function(event) {
+                    socket.close();
+                };
+            }
+
+            else
+            {
+                // The browser doesn't support WebSocket
+                alert("WebSocket NOT supported by your Browser!");
+            }
+
+    }
+
+    function startCropping() {
+//        alert("sending crop job");
+        MSws.send(MotherShipWSmsg("crop_start","",uniqID));
+    }
+
+    function MotherShipWSmsg(jt,data,dID) {
+//        var WSmsg={JobType:"",DeviceId:""};
+        return JSON.stringify({JobType:jt,Data:data,DeviceId:dID});
+    }
+
+
+
+    function KnockwsSocket() {
+        var port =window.location.port;
+        var Knockws_URL="";
+        if (port===""){
+            Knockws_URL="ws://"+window.location.hostname+"/KnockWSConnection";
+        }else{
+            Knockws_URL="ws://"+window.location.hostname+":"+port+"/KnockWSConnection";
+        }
+        Knockws = new WebSocket(Knockws_URL);
+
+        if ("WebSocket" in window)
+        {
+//                alert("WebSocket supported by your Browser!");
+
+            Knockws.onopen = function()
+            {
+                // Web Socket is connected, send data using send()
+                Knockws.send(KnockWSmsg(uniqID,"nil","connect"));
+                //                    alert("Message is sent...");
+            };
+
+            Knockws.onmessage = function (evt)
+            {
+                var received_msg = JSON.parse(evt.data);
+                console.log("received msg : ",received_msg);
+                if (received_msg.id===uniqID){
+                    console.log("----------> Knock Confirmed",received_msg);
+                    switch (received_msg.loc){
+                        case "North":
+                            document.getElementById("confrimationID_North").textContent = received_msg.ConfirmId;
+                            document.getElementById("Connected_North").textContent = "Connected";
+                            document.getElementById("North_button").setAttribute("disabled",true);
+
+                            break;
+                        case "South":
+                            document.getElementById("confrimationID_South").textContent = received_msg.ConfirmId;
+                            document.getElementById("Connected_South").textContent = "Connected";
+                            document.getElementById("South_button").setAttribute("disabled",true);
+
+                            break;
+                        case "West":
+                            document.getElementById("confrimationID_West").textContent = received_msg.ConfirmId;
+                            document.getElementById("Connected_West").textContent = "Connected";
+                            document.getElementById("West_button").setAttribute("disabled",true);
+
+                            break;
+                        case "East":
+                            document.getElementById("confrimationID_East").textContent = received_msg.ConfirmId;
+                            document.getElementById("Connected_East").textContent = "Connected";
+                            document.getElementById("East_button").setAttribute("disabled",true);
+
+                            break;
+                        default:
+                            console.log("Undefined Knock ",received_msg)
+                    }
+                }
+
+            };
+
+            Knockws.onclose = function()
+            {
+                // websocket is closed.
+//                    alert("Connection is closed...");
+            };
+
+            window.onbeforeunload = function(event) {
+                socket.close();
+            };
+        }
+
+        else
+        {
+            // The browser doesn't support WebSocket
+            alert("WebSocket NOT supported by your Browser!");
+        }
+
+    }
+
+    function knock(loc) {
+//        alert("sending crop job");
+        console.log("Knocked @ "+loc);
+        Knockws.send(KnockWSmsg(uniqID,loc,"knock"));
+    }
+
+    function KnockWSmsg(dID,loc,jTyp) {
+//        type knock struct {
+//            Id  int    `json:"id,int"`
+//            Loc string `json:"loc,string"`
+//            //JobType = knock or connect
+//            JobType  string `json:"jobType,string"`
+//            TimeSend time.Time
+//            TimeRcvd time.Time
+//        }
+        return JSON.stringify({Id:dID,Loc:loc,JobType:jTyp,TimeSend:new Date(Date.now()).toISOString(),TimeRcvd:new Date(Date.now()).toISOString()});
+    }
+</script>
+
+</html>
